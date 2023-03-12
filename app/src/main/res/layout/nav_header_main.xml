@@ -42,12 +42,11 @@
         android:id="@+id/loginNavId"
         android:layout_width="wrap_content"
         android:layout_height="32dp"
-        android:layout_marginStart="22dp"
         android:layout_marginBottom="16dp"
         android:background="@color/transparent"
         android:onClick="onLoginClick"
         android:text="LOGIN"
-        android:textAlignment="viewStart"
+        android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:ignore="TouchTargetSizeCheck" />
