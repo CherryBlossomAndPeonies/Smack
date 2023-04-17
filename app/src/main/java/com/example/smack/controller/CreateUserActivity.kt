@@ -1,10 +1,10 @@
-package com.example.smack
+package com.example.smack.controller
 
-import android.content.res.Resources
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.smack.databinding.ActivityCreateUserBinding
+import com.example.smack.services.AuthService
 import kotlin.random.Random
 
 class CreateUserActivity : AppCompatActivity() {
@@ -41,6 +41,12 @@ class CreateUserActivity : AppCompatActivity() {
 
             usedColor = "[${r.toDouble()/255},${g.toDouble()/255}, ${b.toDouble()/255},1]"
             println(r)
+        }
+
+        binding.createUserBtn.setOnClickListener {
+            AuthService.registerUser(this, binding.createUserEmailText.text.toString(), binding.createUserPasswordText.text.toString()) { complete ->
+                println(complete)
+            }
         }
     }
 }

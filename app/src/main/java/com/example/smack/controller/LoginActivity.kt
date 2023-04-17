@@ -1,4 +1,4 @@
-package com.example.smack
+package com.example.smack.controller
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity

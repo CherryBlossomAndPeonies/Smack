@@ -1,4 +1,4 @@
-package com.example.smack
+package com.example.smack.controller
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,9 +7,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.navigation.ui.AppBarConfiguration
 import com.example.smack.databinding.ActivityMainBinding
-import com.google.android.material.navigation.NavigationView
 import com.example.smack.R
 
 class MainActivity : AppCompatActivity() {
