@@ -44,12 +44,17 @@ class CreateUserActivity : AppCompatActivity() {
         }
 
         binding.createUserBtn.setOnClickListener {
-            AuthService.registerUser(this, binding.createUserNameText.text.toString(), binding.createUserPasswordText.text.toString()) { complete ->
+            AuthService.registerUser(this, binding.createUserEmailText.text.toString(), binding.createUserPasswordText.text.toString()) { complete ->
                 if (complete) {
-                    AuthService.loginUser(this,binding.createUserNameText.text.toString(), binding.createUserPasswordText.text.toString()) { loginComplete ->
+                    AuthService.loginUser(this,binding.createUserEmailText.text.toString(), binding.createUserPasswordText.text.toString()) { loginComplete ->
                         if(loginComplete) {
                             println("User name: "+ AuthService.userName)
-                            println("Password: "+ AuthService.authToken)
+                            println("user taken: "+ AuthService.authToken)
+                            AuthService.addUser(this, binding.createUserEmailText.text.toString(), binding.createUserNameText.text.toString(), usedColor, usedImage, AuthService.authToken) { addUserComplete ->
+                                if (addUserComplete) {
+                                    println("Added user")
+                                }
+                            }
                         }
                     }
                 }
