@@ -1,12 +1,15 @@
 package com.example.smack.controller
 
+import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.smack.databinding.ActivityCreateUserBinding
 import com.example.smack.services.AuthService
+import com.example.smack.utilities.BROADCAST_USER_DATA_CHANGE
 import kotlin.random.Random
 
 class CreateUserActivity : AppCompatActivity() {
@@ -47,28 +50,32 @@ class CreateUserActivity : AppCompatActivity() {
         }
 
         binding.createUserBtn.setOnClickListener {
-            enableSpinner(true)
-            AuthService.registerUser(this, binding.createUserEmailText.text.toString(), binding.createUserPasswordText.text.toString()) { complete ->
-                if (complete) {
-                    AuthService.loginUser(this,binding.createUserEmailText.text.toString(), binding.createUserPasswordText.text.toString()) { loginComplete ->
-                        if(loginComplete) {
-                            println("User name: "+ AuthService.userName)
-                            println("user taken: "+ AuthService.authToken)
-                            AuthService.addUser(this, binding.createUserEmailText.text.toString(), binding.createUserNameText.text.toString(), usedColor, usedImage, AuthService.authToken) { addUserComplete ->
-                                if (addUserComplete) {
-                                    println("Added user")
-                                    finish()
-                                } else {
-                                    errorToast()
+            if (binding.createUserEmailText.text.isNotEmpty() && binding.createUserPasswordText.text.isNotEmpty() && binding.createUserNameText.text.isNotEmpty()) {
+                enableSpinner(true)
+                AuthService.registerUser(this, binding.createUserEmailText.text.toString(), binding.createUserPasswordText.text.toString()) { complete ->
+                    if (complete) {
+                        AuthService.loginUser(this,binding.createUserEmailText.text.toString(), binding.createUserPasswordText.text.toString()) { loginComplete ->
+                            if(loginComplete) {
+                                AuthService.addUser(this, binding.createUserEmailText.text.toString(), binding.createUserNameText.text.toString(), usedColor, usedImage, AuthService.authToken) { addUserComplete ->
+                                    if (addUserComplete) {
+                                        val intent = Intent(BROADCAST_USER_DATA_CHANGE)
+                                        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+                                        enableSpinner(false)
+                                        finish()
+                                    } else {
+                                        errorToast()
+                                    }
                                 }
+                            } else {
+                                errorToast()
                             }
-                        } else {
-                            errorToast()
                         }
+                    } else {
+                        errorToast()
                     }
-                } else {
-                    errorToast()
                 }
+            } else {
+                Toast.makeText(this, "Must provide a value for all the fields", Toast.LENGTH_LONG).show()
             }
         }
     }
