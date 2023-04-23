@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
             findViewById<AppCompatButton>(R.id.loginNavId).text = "LOGIN"
             findViewById<TextView>(R.id.navEmailId).text = ""
             findViewById<TextView>(R.id.navUserNameId).text = ""
+            AuthService.isLoggedIn = false
         } else {
             var intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
