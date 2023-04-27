@@ -6,22 +6,33 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.core.content.getSystemService
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.smack.databinding.ActivityMainBinding
 import com.example.smack.R
+import com.example.smack.model.Channel
 import com.example.smack.services.AuthService
+import com.example.smack.services.MessageService
 import com.example.smack.services.UserDataService
 import com.example.smack.utilities.BROADCAST_USER_DATA_CHANGE
+import com.example.smack.utilities.SOCKET_URL
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.emitter.Emitter
+import java.util.EventListener
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private val socket = IO.socket(SOCKET_URL)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,17 +41,29 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.appBarMain.toolbar)
-
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val toggle = ActionBarDrawerToggle(
             this, drawerLayout, binding.appBarMain.toolbar, R.string.open_nav , R.string.close_nav
         )
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
-
+        //hideKeyboard()
         findViewById<AppCompatButton>(R.id.loginNavId).setOnClickListener { onLoginClick() }
+
+        socket.connect()
+        socket.on("channelCreated", addChannel)
+    }
+
+    override fun onResume() {
         LocalBroadcastManager.getInstance(this).registerReceiver(onUserDataBroadCastReceiver, IntentFilter(
             BROADCAST_USER_DATA_CHANGE))
+        super.onResume()
+    }
+
+    override fun onDestroy() {
+        socket.disconnect()
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onUserDataBroadCastReceiver)
+        super.onDestroy()
     }
 
     private val onUserDataBroadCastReceiver = object: BroadcastReceiver() {
@@ -70,6 +93,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onAddChannelClick(view: View) {
+        if(AuthService.isLoggedIn) {
+            var builder = AlertDialog.Builder(this)
+            var dialogView = layoutInflater.inflate(R.layout.add_channel_dialog, null)
 
+            builder.setView(dialogView)
+                .setPositiveButton("Add") {dialogInterface, i ->
+                    // When the call back is called there is no dialog UI in the context
+                    // hence we need to get that from the inflated UI
+                    val nameTextField = dialogView.findViewById<TextView>(R.id.channelName)
+                    val descriptionField = dialogView.findViewById<TextView>(R.id.channelDecription)
+                    val name = nameTextField.text.toString()
+                    val description = descriptionField.text.toString()
+                    //hideKeyboard()
+
+                    socket.emit("newChannel", name, description)
+                }
+                .setNegativeButton("Cancel") {dialogInterface, i ->
+                    //hideKeyboard()
+                }
+                .show()
+        }
     }
+
+    private val addChannel = Emitter.Listener { args ->
+        val channelName = args[0] as String
+        val channelDescription = args[1] as String
+        val channelId = args[2] as String
+
+        var newchannel =  Channel(channelName, channelDescription, channelId)
+        MessageService.channels.add(newchannel)
+    }
+
+    fun hideKeyboard() {
+        var inputManager = getSystemService<InputMethodManager>()
+        inputManager?.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
+    }
+
 }
