@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
@@ -16,6 +17,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.getSystemService
+import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
@@ -37,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val socket = IO.socket(SOCKET_URL)
     private lateinit var channelAdapters: ArrayAdapter<Channel>
+    private var selectedChannel: Channel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +63,12 @@ class MainActivity : AppCompatActivity() {
 
         if (App.sharedPrefs.isLoggedIn) {
             AuthService.findUserByEmail(this){}
+        }
+
+        findViewById<ListView>(R.id.channel_list_view).setOnItemClickListener { _, _, position, _ ->
+            selectedChannel = MessageService.channels[position]
+            updatechannelName()
+            drawerLayout.closeDrawer(GravityCompat.START)
         }
     }
 
@@ -86,7 +95,11 @@ class MainActivity : AppCompatActivity() {
 
             MessageService.getAllChannels(context){complete ->
                 if (complete) {
-                    channelAdapters.notifyDataSetChanged()
+                    if (MessageService.channels.count() > 0) {
+                        channelAdapters.notifyDataSetChanged()
+                        selectedChannel = MessageService.channels[0]
+                        updatechannelName()
+                    }
                     println("channels ${MessageService.channels.count()}")
                 }
             }
@@ -131,6 +144,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 .show()
         }
+    }
+
+    private fun updatechannelName() {
+        findViewById<TextView>(R.id.contentMessageHeader).text = selectedChannel.toString()
     }
 
     private fun setUpAdapter() {

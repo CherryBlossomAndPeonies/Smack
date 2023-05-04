@@ -30,19 +30,20 @@
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/navProfileId"
-        app:shapeAppearanceOverlay="@style/circleImageView"
         android:layout_width="70dp"
         android:layout_height="69dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/loginNavId"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/circleImageView"
         app:srcCompat="@drawable/profiledefault" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/loginNavId"
         android:layout_width="wrap_content"
         android:layout_height="32dp"
+        android:layout_marginStart="6dp"
         android:layout_marginBottom="16dp"
         android:background="@color/transparent"
         android:onClick="onLoginClick"
