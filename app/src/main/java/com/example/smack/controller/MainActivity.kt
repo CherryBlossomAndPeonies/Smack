@@ -57,6 +57,10 @@ class MainActivity : AppCompatActivity() {
         socket.connect()
         socket.on("channelCreated", addChannel)
         setUpAdapter()
+
+        if (App.sharedPrefs.isLoggedIn) {
+            AuthService.findUserByEmail(this){}
+        }
     }
 
     override fun onResume() {
@@ -90,14 +94,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onLoginClick() {
-        if (AuthService.isLoggedIn) {
+        if (App.sharedPrefs.isLoggedIn) {
             UserDataService.logout()
             findViewById<ImageView>(R.id.navProfileId).setImageResource(R.drawable.profiledefault)
             findViewById<ImageView>(R.id.navProfileId).setBackgroundColor(resources.getColor(R.color.transparent, null))
             findViewById<AppCompatButton>(R.id.loginNavId).text = "LOGIN"
             findViewById<TextView>(R.id.navEmailId).text = ""
             findViewById<TextView>(R.id.navUserNameId).text = ""
-            AuthService.isLoggedIn = false
+            App.sharedPrefs.isLoggedIn = false
+            MessageService.channels.clear()
         } else {
             var intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
@@ -105,7 +110,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onAddChannelClick(view: View) {
-        if(AuthService.isLoggedIn) {
+        if(App.sharedPrefs.isLoggedIn) {
             var builder = AlertDialog.Builder(this)
             var dialogView = layoutInflater.inflate(R.layout.add_channel_dialog, null)
 

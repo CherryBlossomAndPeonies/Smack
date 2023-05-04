@@ -12,6 +12,7 @@
         android:theme="@style/Theme.Smack"
         android:usesCleartextTraffic="true"
         android:enableOnBackInvokedCallback="true"
+        android:name=".controller.App"
         tools:targetApi="33">
         <activity
             android:name=".controller.CreateUserActivity"

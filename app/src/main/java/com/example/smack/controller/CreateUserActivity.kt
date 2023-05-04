@@ -56,7 +56,7 @@ class CreateUserActivity : AppCompatActivity() {
                     if (complete) {
                         AuthService.loginUser(this,binding.createUserEmailText.text.toString(), binding.createUserPasswordText.text.toString()) { loginComplete ->
                             if(loginComplete) {
-                                AuthService.addUser(this, binding.createUserEmailText.text.toString(), binding.createUserNameText.text.toString(), usedColor, usedImage, AuthService.authToken) { addUserComplete ->
+                                AuthService.addUser(this, binding.createUserEmailText.text.toString(), binding.createUserNameText.text.toString(), usedColor, usedImage, App.sharedPrefs.authToken!!) { addUserComplete ->
                                     if (addUserComplete) {
                                         val intent = Intent(BROADCAST_USER_DATA_CHANGE)
                                         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
