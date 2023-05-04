@@ -7,7 +7,9 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
 import android.widget.ImageView
+import android.widget.ListView
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
@@ -16,6 +18,7 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.getSystemService
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.smack.databinding.ActivityMainBinding
 import com.example.smack.R
 import com.example.smack.model.Channel
@@ -33,6 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val socket = IO.socket(SOCKET_URL)
+    private lateinit var channelAdapters: ArrayAdapter<Channel>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +56,7 @@ class MainActivity : AppCompatActivity() {
 
         socket.connect()
         socket.on("channelCreated", addChannel)
+        setUpAdapter()
     }
 
     override fun onResume() {
@@ -67,13 +72,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val onUserDataBroadCastReceiver = object: BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
+        override fun onReceive(context: Context, intent: Intent?) {
             findViewById<TextView>(R.id.navUserNameId).text = UserDataService.name
             findViewById<TextView>(R.id.navEmailId).text = UserDataService.email
             findViewById<AppCompatButton>(R.id.loginNavId).text = "LOGOUT"
             var resourseId = resources.getIdentifier(UserDataService.avatarImage, "drawable", packageName)
             findViewById<ImageView>(R.id.navProfileId).setImageResource(resourseId)
             findViewById<ImageView>(R.id.navProfileId).setBackgroundColor(UserDataService.userAvatarColor())
+
+            MessageService.getAllChannels(context){complete ->
+                if (complete) {
+                    channelAdapters.notifyDataSetChanged()
+                    println("channels ${MessageService.channels.count()}")
+                }
+            }
         }
     }
 
@@ -116,13 +128,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setUpAdapter() {
+        channelAdapters = ArrayAdapter(this, android.R.layout.simple_list_item_1, MessageService.channels)
+        findViewById<ListView>(R.id.channel_list_view).adapter = channelAdapters
+    }
     private val addChannel = Emitter.Listener { args ->
-        val channelName = args[0] as String
-        val channelDescription = args[1] as String
-        val channelId = args[2] as String
+        runOnUiThread {
+            val channelName = args[0] as String
+            val channelDescription = args[1] as String
+            val channelId = args[2] as String
 
-        var newchannel =  Channel(channelName, channelDescription, channelId)
-        MessageService.channels.add(newchannel)
+            var newchannel =  Channel(channelName, channelDescription, channelId)
+            MessageService.channels.add(newchannel)
+            channelAdapters.notifyDataSetChanged()
+        }
     }
 
     fun hideKeyboard() {
