@@ -8,14 +8,12 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.ArrayAdapter
-import android.widget.ImageView
-import android.widget.ListView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.content.getSystemService
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -24,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.smack.databinding.ActivityMainBinding
 import com.example.smack.R
 import com.example.smack.model.Channel
+import com.example.smack.model.Message
 import com.example.smack.services.AuthService
 import com.example.smack.services.MessageService
 import com.example.smack.services.UserDataService
@@ -59,6 +58,7 @@ class MainActivity : AppCompatActivity() {
 
         socket.connect()
         socket.on("channelCreated", addChannel)
+        socket.on("messageCreated", messageCreated)
         setUpAdapter()
 
         if (App.sharedPrefs.isLoggedIn) {
@@ -69,6 +69,10 @@ class MainActivity : AppCompatActivity() {
             selectedChannel = MessageService.channels[position]
             updatechannelName()
             drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        findViewById<AppCompatImageButton>(R.id.sendMessageBtn).setOnClickListener {
+            sendMessage()
         }
     }
 
@@ -150,6 +154,20 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.contentMessageHeader).text = selectedChannel.toString()
     }
 
+    private fun sendMessage() {
+        if (App.sharedPrefs.isLoggedIn && findViewById<TextView>(R.id.messageInbox).text.isNotEmpty() && selectedChannel != null) {
+            val userId = UserDataService.id
+            val message = findViewById<TextView>(R.id.messageInbox).text.toString()
+            val selectedChannelId = selectedChannel!!.id
+            val avatarName = UserDataService.avatarImage
+            val avatarColor = UserDataService.avatarColor
+            val userName = UserDataService.name
+            socket.emit("newMessage", message, userId, selectedChannelId, userName,avatarName, avatarColor)
+            findViewById<MultiAutoCompleteTextView>(R.id.messageInbox).text.clear()
+            hideKeyboard()
+        }
+    }
+
     private fun setUpAdapter() {
         channelAdapters = ArrayAdapter(this, android.R.layout.simple_list_item_1, MessageService.channels)
         findViewById<ListView>(R.id.channel_list_view).adapter = channelAdapters
@@ -163,6 +181,21 @@ class MainActivity : AppCompatActivity() {
             var newchannel =  Channel(channelName, channelDescription, channelId)
             MessageService.channels.add(newchannel)
             channelAdapters.notifyDataSetChanged()
+        }
+    }
+
+    private val messageCreated = Emitter.Listener { args ->
+        runOnUiThread {
+            val message = args[0] as String
+            val channelId = args[2] as String
+            val userName = args[3] as String
+            val avatarName = args[4] as String
+            val avatarColor = args[5] as String
+            val messageId =  args[6] as String
+            val timeStamp = args[7] as String
+
+            val newMessage = Message(message, channelId, userName, avatarName, avatarColor, messageId, timeStamp)
+            MessageService.messages.add(newMessage)
         }
     }
 
