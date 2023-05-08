@@ -17,12 +17,12 @@ object UserDataService {
         avatarImage = ""
         name = ""
     }
-    fun userAvatarColor(): Int {
+    fun userAvatarColor(color:String): Int {
         var r = 0;
         var g = 0;
         var b = 0;
 
-        var stripedColor = avatarColor.replace(",", " ").replace("[", "").replace("]", "")
+        var stripedColor = color.replace(",", " ").replace("[", "").replace("]", "")
         var scanner = Scanner(stripedColor)
 
         println("color ${stripedColor}")
